@@ -9,7 +9,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import classes from './Header.module.css';
-import logo from './Logo.jpeg'
+import logo from './SmartIrrigation.png'
   
  
 export function HeaderMegaMenu() {
@@ -20,7 +20,7 @@ export function HeaderMegaMenu() {
             <header className={classes.header}>
                 <Group justify="space-between" h="100%">
 
-                    <img src={logo} alt="logo" width={80} height={80}  />
+                    <img src={logo} alt="logo" width={80} height={80} style={{scale: 1.5}}  />
         
                     <Group h="100%" gap={0} visibleFrom="md">
                         <a href="#" className={classes.link}>
