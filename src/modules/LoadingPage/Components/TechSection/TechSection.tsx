@@ -58,7 +58,7 @@ const technologies = [
 
 export function TechSection() {
   return (
-    <Container  py={40} size="xl" className={classes.section}>
+    <Container  py={40} size="xl" className={classes.section} id="technologies">
         <Title order={2} className={classes.sectionTitle} ta="center" mb={30}>
           Technologies Utilisées
         </Title>

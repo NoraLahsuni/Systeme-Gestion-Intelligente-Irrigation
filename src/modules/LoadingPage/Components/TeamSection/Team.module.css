@@ -1,3 +1,8 @@
+.section{
+    background-color: #f1f4fe;
+    margin: 40px 0 50px 0;
+}
+
 .sectionTitle {
     font-size: rem(32px);
     margin-bottom: var(--mantine-spacing-xl);
