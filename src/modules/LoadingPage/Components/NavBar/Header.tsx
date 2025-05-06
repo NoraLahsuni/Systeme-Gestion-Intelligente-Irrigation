@@ -1,14 +1,11 @@
-import {
-    Box,
-    Button,
-    Group,
-} from '@mantine/core';
+import {Box,Button,Group} from '@mantine/core';
 import classes from './Header.module.css';
 import logo from './SmartIrrigation.png'
+import ModalLogin from '../ModalLogin/ModalLogin';
+import { useDisclosure } from '@mantine/hooks';
   
  
 export function HeaderMegaMenu() {
-
     const handleScroll = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>, targetId: string) => {
         event.preventDefault(); 
         const element = document.getElementById(targetId);
@@ -19,6 +16,7 @@ export function HeaderMegaMenu() {
             });
         }
     };
+    const [opened, { open, close }] = useDisclosure(false);
   
     return (
         <Box>
@@ -44,14 +42,16 @@ export function HeaderMegaMenu() {
                     </Group>
         
                     <Group visibleFrom="md">
-                        <Button variant="default">Contactez-nous</Button>
+                        <Button variant="default" onClick={open}>Connexion</Button>
                     </Group>
         
                     <Group hiddenFrom="md">
-                        <Button variant="default">Contactez-nous</Button>
+                        <Button variant="default" onClick={open}>Connexion</Button>
                     </Group>
                 </Group>
             </header>
+
+            <ModalLogin opened={opened} close={close} />
         </Box>
     );
   }
