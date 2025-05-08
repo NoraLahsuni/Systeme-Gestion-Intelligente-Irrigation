@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.34">
+<link rel="stylesheet" type="text/css" href="omniORBpy.css">
+<title>Transports and Endpoints</title>
+</head>
+<body >
+<a href="omniORBpy006.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="omniORBpy008.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h1 id="sec83" class="chapter">Chapter&#XA0;7&#XA0;&#XA0;Transports and Endpoints</h1>
+<p>
+<a id="chap:endpoints"></a></p><p>omniORB can support multiple network transports. All platforms
+(usually) have a TCP transport available. Unix platforms support a
+Unix domain socket transport. Platforms with the OpenSSL library
+available can support a TLS/SSL and HTTP(s) transport.</p><p>Servers must be configured in two ways with regard to transports: the
+transports and interfaces on which they listen, and the details that
+are published in IORs for clients to see. Usually the published
+details will be the same as the listening details, but there are times
+when it is useful to publish different information.</p><p>Details are selected with the <span style="font-family:monospace">endPoint</span> family of parameters.
+The simplest is plain <span style="font-family:monospace">endPoint</span>, which chooses a transport and
+interface details, and publishes the information in IORs. Endpoint
+parameters are in the form of URIs, with a scheme name of
+&#X2018;<span style="font-family:monospace">giop:</span>&#X2019;, followed by the transport name. Different transports
+have different parameters following the transport.</p><p>TCP endpoints have the format:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:tcp:</span><span style="font-style:italic">&lt;host&gt;</span><span style="font-family:monospace">:</span><span style="font-style:italic">&lt;port&gt;</span>
+</blockquote><p>The host must be a valid host name or IP address for the
+server machine. It determines the network interface on which the
+server listens. The port selects the TCP port to listen on, which must
+be unoccupied. Either the host or port, or both can be left empty. If
+the host is empty, the ORB publishes the IP address of the first
+non-loopback network interface it can find (or the loopback if that is
+the only interface), but listens on <em>all</em> network interfaces. If
+the port is empty, the operating system chooses an <span style="font-style:italic">ephemeral</span>
+port.</p><p>Multiple TCP endpoints can be selected, either to specify multiple
+network interfaces on which to listen, or (less usefully) to select
+multiple TCP ports on which to listen.</p><p>If no <span style="font-family:monospace">endPoint</span> parameters are set, the ORB assumes a single
+parameter of <span style="font-family:monospace">giop:tcp::</span>, meaning IORs contain the address of
+the first non-loopback network interface, the ORB listens on all
+interfaces, and the OS chooses a port number.</p><p>TLS/SSL endpoints have the same format as TCP ones, except
+&#X2018;<span style="font-family:monospace">tcp</span>&#X2019; is replaced with &#X2018;<span style="font-family:monospace">ssl</span>&#X2019;. Unix domain socket
+endpoints have the format:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:unix:</span><span style="font-style:italic">&lt;filename&gt;</span>
+</blockquote><p>where the filename is the name of the socket within the
+filesystem. If the filename is left blank, the ORB chooses a name
+based on the process id and a timestamp.</p><p>To listen on an endpoint without publishing it in IORs, specify it
+with the <span style="font-family:monospace">endPointNoPublish</span> configuration parameter. See below
+for more details about endpoint publishing.</p>
+<h2 id="sec84" class="section">7.1&#XA0;&#XA0;Port ranges</h2>
+<p>Sometimes it is useful to restrict a server to listen on one of a
+range of ports, rather than pinning it to one particular port or
+allowing the OS to choose an ephemeral port. omniORB 4.2 introduced
+the ability to specify a range of ports using a hyphen. e.g. to
+listen on a port between 5000 and 5010 inclusive:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:tcp::5000-5010</span>
+</blockquote><p>omniORB randomly chooses a port in the range. If it finds
+that the chosen port is already occupied, it keeps trying different
+ports until it finds a free one. If all the ports in the range are
+occupied, it throws <span style="font-family:monospace">CORBA.INITIALIZE</span>.</p>
+<h2 id="sec85" class="section">7.2&#XA0;&#XA0;IPv6</h2>
+<p>On platforms where it is available, omniORB supports IPv6. On most
+Unix platforms, IPv6 sockets accept both IPv6 and IPv4 connections, so
+omniORB&#X2019;s default <span style="font-family:monospace">giop:tcp::</span> endpoint accepts both IPv4 and
+IPv6 connections. On Windows versions before Windows Vista, each
+socket type only accepts incoming connections of the same type, so an
+IPv6 socket cannot be used with IPv4 clients. For this reason, the
+default <span style="font-family:monospace">giop:tcp::</span> endpoint only listens for IPv4 connections.
+Since endpoints with a specific host name or address only listen on a
+single network interface, they are inherently limited to just one
+protocol family.</p><p>To explicitly ask for just IPv4 or just IPv6, an endpoint with the
+wildcard address for the protocol family should be used. For IPv4, the
+wildcard address is &#X2018;<span style="font-family:monospace">0.0.0.0</span>&#X2019;, and for IPv6 it is &#X2018;<span style="font-family:monospace">::</span>&#X2019;.
+So, to listen for IPv4 connections on all IPv4 network interfaces, use
+an endpoint of:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:tcp:0.0.0.0:</span>
+</blockquote><p>All IPv6 addresses contain colons, so the address portion in
+URIs must be contained within <span style="font-family:monospace">[]</span> characters. Therefore, to
+listen just for IPv6 connections on all IPv6 interfaces, use the
+somewhat cryptic:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:tcp:[::]:</span>
+</blockquote><p>To listen for both IPv4 and IPv6 connections on Windows
+versions prior to Vista, both endpoints must be explicitly provided.</p>
+<h3 id="sec86" class="subsection">7.2.1&#XA0;&#XA0;Link local addresses</h3>
+<p>In IPv6, all network interfaces are assigned a <span style="font-style:italic">link local</span>
+address, starting with the digits <span style="font-family:monospace">fe80</span>. The link local address
+is only valid on the same &#X2018;link&#X2019; as the interface, meaning directly
+connected to the interface, or possibly on the same subnet, depending
+on how the network is switched. To connect to a server&#X2019;s link local
+address, a client has to know which of its network interfaces is on
+the same link as the server. Since there is no way for omniORB to know
+which local interface a remote link local address may be connected to,
+and in extreme circumstances may even end up contacting the wrong
+server if it picks the wrong interface, link local addresses are not
+considered valid. Servers do not publish link local addresses in their
+IORs.</p>
+<h2 id="sec87" class="section">7.3&#XA0;&#XA0;Endpoint publishing</h2>
+<p>For clients to be able to connect to a server, the server publishes
+endpoint information in its IORs (Interoperable Object References).
+Normally, omniORB publishes the first available address for each of
+the endpoints it is listening on.</p><p>The endpoint information to publish is determined by the
+<span style="font-family:monospace">endPointPublish</span> configuration parameter. It contains a
+comma-separated list of publish rules. The rules are applied in turn
+to each of the configured endpoints; if a rule matches an endpoint, it
+causes one or more endpoints to be published.</p><p>The following core rules are supported:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">addr</span></td><td style="vertical-align:top;text-align:left;" >the first natural address of the endpoint</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">ipv4</span></td><td style="vertical-align:top;text-align:left;" >the first IPv4 address of a TCP or SSL endpoint</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">ipv6</span></td><td style="vertical-align:top;text-align:left;" >the first IPv6 address of a TCP or SSL endpoint</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">name</span></td><td style="vertical-align:top;text-align:left;" >the first address that can be resolved to a name</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">hostname</span></td><td style="vertical-align:top;text-align:left;" >the result of the gethostname() system call</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">fqdn</span></td><td style="vertical-align:top;text-align:left;" >the fully-qualified domain name</td></tr>
+</table><p>The core rules can be combined using the vertical bar operator to
+try several rules in turn until one succeeds. e.g:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">name|ipv6|ipv4</span></td><td style="vertical-align:top;text-align:left;" >the name of the endpoint if it has one;
+	failing that, its first IPv6 address;
+	failing that, its first IPv4 address.
+</td></tr>
+</table><p>Multiple rules can be combined using the comma operator to
+publish more than one endpoint. e.g.</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">name,addr</span></td><td style="vertical-align:top;text-align:left;" >the name of the endpoint (if it has one),
+followed by its first address.
+</td></tr>
+</table><p>For endpoints with multiple addresses (e.g. TCP endpoints on
+multi-homed machines), the <span style="font-family:monospace">all()</span> manipulator causes all
+addresses to be published. e.g.:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">all(addr)</span></td><td style="vertical-align:top;text-align:left;" >all addresses are published</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">all(name)</span></td><td style="vertical-align:top;text-align:left;" >all addresses that resolve to names are published</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">all(name|addr)</span></td><td style="vertical-align:top;text-align:left;" >all addresses are published by name if they have
+one, address otherwise.</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">all(name,addr)</span></td><td style="vertical-align:top;text-align:left;" >all addresses are published by name (if they
+have one), and by address.</td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">all(name), all(addr)</span></td><td style="vertical-align:top;text-align:left;" >first the names of all addresses are published,
+followed by all the addresses.</td></tr>
+</table><p>A specific endpoint can be published by giving its endpoint URI,
+even if the server is not listening on that endpoint. e.g.:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">giop:tcp:not.my.host:12345</span></td></tr>
+<tr><td style="vertical-align:top;text-align:left;" ><span style="font-family:monospace">giop:unix:/not/my/socket-file</span></td></tr>
+</table><p>If the host or port number for a TCP or SSL URI are missed out,
+they are filled in with the details from each listening TCP/SSL
+endpoint. This can be used to publish a different name for a
+TCP/SSL endpoint that is using an ephemeral port, for example.</p><p>omniORB 4.0 supported two options related to endpoint publishing that
+are superseded by the <span style="font-family:monospace">endPointPublish</span> parameter, and so are now
+deprecated. Setting <span style="font-family:monospace">endPointPublishAllIFs</span> to 1 is equivalent to
+setting <span style="font-family:monospace">endPointPublish</span> to &#X2018;<span style="font-family:monospace">all(addr)</span>&#X2019;. The
+<span style="font-family:monospace">endPointNoListen</span> parameter is equivalent to adding endpoint
+URIs to the <span style="font-family:monospace">endPointPublish</span> parameter.</p>
+<h3 id="sec88" class="subsection">7.3.1&#XA0;&#XA0;POA-specific endpoint publishing</h3>
+<p>It can sometimes to useful to publish different sets of endpoints for
+different objects in the same server. To enable that, you can create a
+POA with the omniORB-specific EndpointPublishPolicy, giving a sequence
+of endpoint strings:</p><div class="lstlisting"><span style="font-size:small">eps</span><span style="font-size:small"> = [</span><span style="font-size:small"><span style="font-size:small">"giop:tcp:hostname1:10000"</span></span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">       </span><span style="font-size:small"><span style="font-size:small">"giop:tcp:hostname2:20000"</span></span><span style="font-size:small">]</span><span style="font-size:small">
+</span><span style="font-size:small">policy</span><span style="font-size:small"> = </span><span style="font-size:small">orb</span><span style="font-size:small">.</span><span style="font-size:small">create_policy</span><span style="font-size:small">(</span><span style="font-size:small">omniPolicy</span><span style="font-size:small">.</span><span style="font-size:small">ENDPOINT_PUBLISH_POLICY_TYPE</span><span style="font-size:small">, </span><span style="font-size:small">eps</span><span style="font-size:small">)</span></div><p>The endpoints must be fully specified&#X2014;unlike the global
+publish specifications, an empty port number is <em>not</em> filled with
+the chosen listening port.</p><p>Note that the publishing policy only affects the <em>published</em>
+endpoints&#X2014;it does not change the global endpoints that the ORB is
+listening on to receive incoming connections.</p>
+<h2 id="sec89" class="section">7.4&#XA0;&#XA0;Connection selection and acceptance</h2>
+<p>In the face of IORs containing details about multiple different
+endpoints, clients have to know how to choose the one to use to
+connect a server. Similarly, servers may wish to restrict which
+clients can connect to particular transports. This is achieved with
+<span style="font-style:italic">transport rules</span>.</p>
+<h2 id="sec90" class="section">7.5&#XA0;&#XA0;Client transport rules</h2>
+<p>
+<a id="sec:clientRule"></a></p><p>The <span style="font-family:monospace">clientTransportRule</span> parameter is used to filter and
+prioritise the order in which transports specified in an IOR are
+tried. Each rule has the form:</p><blockquote class="quote">
+<span style="font-style:italic">&lt;address mask&gt; [action]+</span>
+</blockquote><p>The address mask can be one of</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >1.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">localhost</span></td><td style="vertical-align:top;text-align:left;" >The address of this machine</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >
+2.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-style:italic">w.x.y.z</span><span style="font-family:monospace">/</span><span style="font-style:italic">m1.m2.m3.m4</span></td><td style="vertical-align:top;text-align:left;" >An IPv4 address
+with bits selected by the mask, e.g.
+ <span style="font-family:monospace">172.16.0.0/255.240.0.0</span></td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >
+3.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-style:italic">w.x.y.z</span><span style="font-family:monospace">/</span><span style="font-style:italic">prefixlen</span></td><td style="vertical-align:top;text-align:left;" >An IPv4 address with
+<span style="font-style:italic">prefixlen</span> significant bits, e.g.
+ <span style="font-family:monospace">172.16.2.0/24</span></td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >
+4.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-style:italic">a:b:c:d:e:f:g:h</span><span style="font-family:monospace">/</span><span style="font-style:italic">prefixlen</span></td><td style="vertical-align:top;text-align:left;" >An IPv6
+address with <span style="font-style:italic">prefixlen</span> significant bits, e.g.
+ <span style="font-family:monospace">3ffe:505:2:1::/64</span></td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >
+5.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">*</span></td><td style="vertical-align:top;text-align:left;" >Wildcard that matches any address</td></tr>
+</table><p>The action is one or more of the following:</p><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >1.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">none</span></td><td style="vertical-align:top;text-align:left;" >Do not use this address</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >2.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">tcp</span></td><td style="vertical-align:top;text-align:left;" >Use a TCP transport</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >3.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">ssl</span></td><td style="vertical-align:top;text-align:left;" >Use an SSL transport</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >4.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">unix</span></td><td style="vertical-align:top;text-align:left;" >Use a Unix socket transport</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >5.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">http</span></td><td style="vertical-align:top;text-align:left;" >Use an HTTP transport</td></tr>
+<tr><td style="vertical-align:top;text-align:left;white-space:nowrap" >6.</td><td style="vertical-align:top;text-align:left;white-space:nowrap" ><span style="font-family:monospace">bidir</span></td><td style="vertical-align:top;text-align:left;" >Connections to this address can be used
+bidirectionally (see section&#XA0;<a href="#sec%3Abidir">7.7</a>)</td></tr>
+</table><p>The transport-selecting actions form a prioritised list, so
+an action of &#X2018;<span style="font-family:monospace">unix,ssl,tcp</span>&#X2019; means to use a Unix transport if
+there is one, failing that an SSL transport, failing <em>that</em> a TCP
+transport. In the absence of any explicit rules, the client uses the
+implicit rule of &#X2018;<span style="font-family:monospace">* unix,ssl,tcp</span>&#X2019;.</p><p>If more than one rule is specified, they are prioritised in the order
+they are specified. For example, the configuration file might contain:</p><pre class="verbatim">  clientTransportRule = 192.168.1.0/255.255.255.0  unix,tcp
+  clientTransportRule = 172.16.0.0/255.240.0.0     unix,tcp
+                      =       *                    none
+</pre><p>This would be useful if there is a fast network
+(192.168.1.0) which should be used in preference to another network
+(172.16.0.0), and connections to other networks are not permitted at
+all.</p><p>In general, the result of filtering the endpoint specifications in an
+IOR with the client transport rule will be a prioritised list of
+transports and networks. (If the transport rules do not prioritise one
+endpoint over another, the order the endpoints are listed in the IOR
+is used.) When trying to contact an object, the ORB tries its
+possible endpoints in turn, until it finds one with which it can
+contact the object. Only after it has unsuccessfully tried all
+permissible endpoints will it raise a <span style="font-family:monospace">TRANSIENT</span> exception to
+indicate that the connect failed.</p>
+<h2 id="sec91" class="section">7.6&#XA0;&#XA0;Server transport rules</h2>
+<p>
+<a id="sec:serverRule"></a></p><p>Server transport rules have the same format as client transport
+rules. Rather than being used to select which of a set of ways to
+contact a machine, they are used to determine whether or not to accept
+connections from particular clients. In this example, we only allow
+connections from our intranet:</p><pre class="verbatim">  serverTransportRule = localhost                  unix,tcp,ssl
+                      = 172.16.0.0/255.240.0.0     tcp,ssl
+                      = *                          none
+</pre><p>And in this one, we accept only SSL connections if the
+client is not on the intranet:</p><pre class="verbatim">  serverTransportRule = localhost                  unix,tcp,ssl
+                      = 172.16.0.0/255.240.0.0     tcp,ssl
+                      = *                          ssl,bidir
+</pre><p>In the absence of any explicit rules, the server uses the
+implicit rule of &#X2018;<span style="font-family:monospace">* unix,ssl,tcp</span>&#X2019;, meaning any kind of
+connection (other than HTTP) is accepted from any client.</p>
+<h2 id="sec92" class="section">7.7&#XA0;&#XA0;Bidirectional GIOP</h2>
+<p>
+<a id="sec:bidir"></a></p><p>omniORB supports bidirectional GIOP, which allows callbacks to be made
+using a connection opened by the original client, rather than the
+normal model where the server opens a new connection for the callback.
+This is important for negotiating firewalls, since they tend not to
+allow connections back on arbitrary ports.</p><p>There are several steps required for bidirectional GIOP to be enabled
+for a callback. Both the client and server must be configured
+correctly. On the client side, these conditions must be met:</p><ul class="itemize"><li class="li-itemize">The <span style="font-family:monospace">offerBiDirectionalGIOP</span> parameter must be set to <span style="font-family:monospace">true</span>. 
+</li><li class="li-itemize">The client transport rule for the target server must contain the
+<span style="font-family:monospace">bidir</span> action.
+</li><li class="li-itemize">The POA containing the callback object (or objects) must have
+been created with a <span style="font-family:monospace">BidirectionalPolicy</span> value of
+<span style="font-family:monospace">BOTH</span>.</li></ul><p>On the server side, these conditions must be met:</p><ul class="itemize"><li class="li-itemize">The <span style="font-family:monospace">acceptBiDirectionalGIOP</span> parameter must be set to <span style="font-family:monospace">true</span>. 
+</li><li class="li-itemize">The server transport rule for the requesting client must contain
+the <span style="font-family:monospace">bidir</span> action.
+</li><li class="li-itemize">The POA hosting the object contacted by the client must have
+been created with a <span style="font-family:monospace">BidirectionalPolicy</span> value of
+<span style="font-family:monospace">BOTH</span>.</li></ul>
+<h2 id="sec93" class="section">7.8&#XA0;&#XA0;TLS / SSL transport</h2>
+<p>omniORB supports a TLS / SSL transport, using OpenSSL. It is only
+built if OpenSSL is available. On platforms using Autoconf, it is
+autodetected in many locations, or its location can be given with the
+<span style="font-family:monospace">--with-openssl=</span> argument to <span style="font-family:monospace">configure</span>. On other
+platforms, the <span style="font-family:monospace">OPEN_SSL_ROOT</span> make variable must be set in the
+platform file.</p><p>To use the SSL transport from Python you must import and set
+parameters in the <span style="font-family:monospace">omniORB.sslTP</span> module before calling
+<span style="font-family:monospace">CORBA.ORB_init()</span>. To initialise the module, you must call the
+<span style="font-family:monospace">certificate_authority_file()</span>, <span style="font-family:monospace">key_file()</span> and
+<span style="font-family:monospace">key_file_password()</span> functions, providing the file names of the
+certificate authority and encryption keys, and the key file password.</p>
+<h3 id="sec94" class="subsection">7.8.1&#XA0;&#XA0;Self-signed certificate authority</h3>
+<p>By default, omniORB configures OpenSSL to require both clients and
+servers to have certificates that are signed by a Certificate
+Authority (CA). It is possible to use a public CA to obtain keys that
+can be independently verified, but for many purposes, it is sufficient
+to use a private CA to sign all the keys in use in an application. The
+following is a brief description of how to become your own certificate
+authority and issue and sign certificates, using the OpenSSL command
+line tools.</p><p>Before starting, find the default <span style="font-family:monospace">openssl.cnf</span> file that was
+installed with OpenSSL, copy it to a suitable location, and edit it as
+you feel appropriate. Now, build a certificate directory structure,
+authority key and certificate:</p><pre class="verbatim">  mkdir demoCA demoCA/private demoCA/newcerts
+
+  openssl req -config openssl.cnf -x509 -newkey rsa:2048 \
+     -keyout demoCA/private/cakey.pem -out demoCA/cacert.pem -days 3650
+
+  echo 01 &gt;demoCA/serial
+  touch demoCA/index.txt
+</pre><p>Next, issue a key request and sign it:</p><pre class="verbatim">  openssl req -config openssl.cnf -new -keyout server_key.pem \
+     -out server_req.pem -days 3650
+
+  openssl ca -config openssl.cnf -policy policy_anything \
+     -out server_cert.pem -in server_req.pem 
+</pre><p>Amongst other things, you now have a server key file in
+<span style="font-family:monospace">server_key.pem</span> and a certificate in <span style="font-family:monospace">server_cert.pem</span>. To
+make a single file containing both the key and the certificate,
+suitable for use in omniORB, concatenate the key and certificate files
+together. You can skip the human-readable(ish) text in the
+certificate file before the <code>-----BEGIN CERTIFICATE-----</code> marker.</p><p>If need be, create more certificates for servers and clients in the
+same way.</p>
+<h2 id="sec95" class="section">7.9&#XA0;&#XA0;HTTP, HTTPS and WebSocket transport</h2>
+<p>
+<a id="sec:httptransport"></a></p><p>omniORB includes an omniORB-specific HTTP transport. It works by
+encapsulating GIOP messages into HTTP messages, which can make it
+easier to transport through firewalls and proxies that understand HTTP
+but not GIOP. It supports the use of HTTP proxies, reverse proxies and
+load balancers. It can optionally establish WebSocket connections,
+which avoid many of the limitations of pure HTTP, but are not quite as
+widely accepted.</p><p>To use the HTTP transport from Python you must import the
+<span style="font-family:monospace">omniORB.httpTP</span> module before calling <span style="font-family:monospace">CORBA.ORB_init()</span>.</p>
+<h3 id="sec96" class="subsection">7.9.1&#XA0;&#XA0;HTTP limitations</h3>
+<p>Normal client-server CORBA calls match the semantics of HTTP &#X2014; the
+client sends a request and blocks waiting for the server to respond,
+meaning that in simple uses, the communication is pure, valid HTTP,
+and can therefore safely pass through proxies. However, there are a
+number of situations in which GIOP semantics do not match HTTP. In
+these cases, the communication works if an omniORB client is connected
+directly to an omniORB server, but can fail if a proxy or other system
+is interpreting the HTTP messages along the communication path:</p><ul class="itemize"><li class="li-itemize">If the <span style="font-family:monospace">oneCallPerConnection</span> configuration parameter is
+set to the non-default value of false, a multi-threaded client can
+send multiple concurrent calls on a single connection, meaning
+multiple HTTP requests are made without waiting for each to
+receive a reply.</li><li class="li-itemize">If bidirectional GIOP is enabled, the server can send a
+message to the client that is not in response to a client request.</li><li class="li-itemize">Web proxies can choose to open new connections at any time,
+and therefore the client&#X2019;s idea of the lifetime of a connection
+does not necessarily match what the server sees. This means that
+codeset information, which is only transmitted on the first call on a
+connection, may be missing from the point of view of the server.</li><li class="li-itemize">Some web proxies and load balancers routinely close
+connections after a client has sent a request, without sending the
+request on to the server. The client therefore sees the connection
+fail, but cannot know that the server did not receive the
+request. It therefore has to fail the call with a
+<span style="font-family:monospace">COMM_FAILURE</span> exception with completion status
+<span style="font-family:monospace">COMPLETED_MAYBE</span>. Application code must be prepared to
+handle the situation.</li></ul><p>To minimise these issues with proxies, it is safest to keep
+<span style="font-family:monospace">oneCallPerConnection</span> set to true, avoid bidirectional GIOP, and
+make use of the <span style="font-family:monospace">defaultCharCodeSet</span> and
+<span style="font-family:monospace">defaultWCharCodeSet</span> parameters to choose suitable codesets.</p><p>Alternatively, clients can &#X2018;upgrade&#X2019; the HTTP connection to a
+WebSockets connection, in which cases messages are sent in a binary
+framing format that <em>does</em> permit the use of full GIOP semantics.
+Upgrading an HTTP connection to a WebSockets connection requires that
+all intermediary servers (proxies, load balancers, etc.) support the
+WebSocket protocol, so there are some environments in which plain HTTP
+communication succeeds but WebSockets fail.</p>
+<h3 id="sec97" class="subsection">7.9.2&#XA0;&#XA0;Endpoint and transport rule specification</h3>
+<p>The HTTP transport uses endpoint URIs of the form
+<span style="font-family:monospace">giop:http:</span><span style="font-style:italic">url</span>, where the <span style="font-style:italic">url</span> is a full
+<span style="font-family:monospace">http://</span>, <span style="font-family:monospace">https://</span>, <span style="font-family:monospace">ws://</span> or <span style="font-family:monospace">wss://</span>
+URL. That means the URIs appear to duplicate the &#X2018;http&#X2019;:</p><blockquote class="quote">
+<span style="font-family:monospace">giop:http:http://server.example.com:8000/call</span><br>
+ <span style="font-family:monospace">giop:http:https://secure.example.com:443/invoke</span><br>
+ <span style="font-family:monospace">giop:http:ws://websocket.example.com:8080/ws</span><br>
+ <span style="font-family:monospace">giop:http:wss://websocket-secure.example.com:8443/ws</span>
+</blockquote><p>The path part of the URL can be set to any value. On the
+client side, the client makes an HTTP <span style="font-family:monospace">POST</span> request to the URL,
+specifying the path; the server checks that the path matches what it
+expects. The ability to specify a path this way can be helpful when
+configuring path-based routing in load balancer configurations.</p><p>If no port is specified on the server endpoint, the server uses an
+ephemeral port; it does not default to 80 or 443.</p><p>Servers always support upgrade of connections to WebSocket. The use of
+a <span style="font-family:monospace">ws://</span> or <span style="font-family:monospace">wss://</span> URL determines the URL that is
+published in object references, and thus whether clients will attempt
+to use WebSockets or not.</p><p>The transport specification &#X2018;<span style="font-family:monospace">http</span>&#X2019; is not in the default client
+or server transport rules (as described in
+section&#XA0;<a href="#sec%3AclientRule">7.5</a>). To enable the use of HTTP, the client
+and server transport rules could for example contain &#X2018;<span style="font-family:monospace">*
+unix,tcp,ssl,http</span>&#X2019;.</p>
+<h3 id="sec98" class="subsection">7.9.3&#XA0;&#XA0;HTTP proxies</h3>
+<p>Clients can connect via a web proxy. The <span style="font-family:monospace">httpProxy</span>
+configuration can be set to an http or https proxy URL. If the proxy
+requires basic authentication, the <span style="font-family:monospace">httpProxyUsername</span> and
+<span style="font-family:monospace">httpProxyPassword</span> parameters can be set.</p><p>When connecting through a proxy, the behaviour depends on whether the
+client is connecting to an HTTP or HTTPS server, and whether it is
+attempting to use WebSockets. When connecting with plain HTTP, the
+request is sent directly to the proxy, and the proxy forwards it at an
+HTTP level. In this situation, it is essential that only pure
+HTTP-compliant messages are sent.</p><p>When connecting to an HTTPS server or upgrading the connection to
+WebSockets, the client makes a <span style="font-family:monospace">CONNECT</span> request to the proxy. If
+accepted by the proxy, that opens a transparent tunnel through to the
+server. In that situation, as long as nothing else intercepts and
+attempts to interpret the data, the omniORB client is in effect
+directly connected to the omniORB server, and there is more chance
+that transfers that are not strictly legal HTTP will succeed.</p>
+<h3 id="sec99" class="subsection">7.9.4&#XA0;&#XA0;HTTPS keys and certificates</h3>
+<p>Support for HTTPS uses the same concepts as the SSL transport. For
+each configuration option with a name starting &#X2018;<span style="font-family:monospace">ssl</span>&#X2019;, there is
+an equivalent option starting &#X2018;<span style="font-family:monospace">https</span>&#X2019;.</p>
+<h3 id="sec100" class="subsection">7.9.5&#XA0;&#XA0;In-message encryption</h3>
+<p>In some environments, the use of HTTPS is not sufficient to guarantee
+end-to-end security between client and server. There are at least two
+situations in which that can arise:</p><ul class="itemize"><li class="li-itemize">
+Some transparent web proxies intercept HTTPS connections and
+act as a decrypting man-in-the-middle. For that to work, the
+client and server must accept the proxy&#X2019;s certificates of course,
+but that may be the only way for the client to connect to the
+server.</li><li class="li-itemize">On the server side, it can be useful to have a load balancer
+that performs HTTPS off-load in front of the server. In that case,
+the client connects with HTTPS, but the server sees a plain HTTP
+connection.
+</li></ul><p>To ensure message security in those cases, the HTTP transport supports
+in-message encryption. Import <span style="font-family:monospace">omniORB.httpCrypto</span> to enable the
+an encryption implementation that uses AES-256 for message encryption
+and RSA with pre-shared public keys for key transfer. To use it, on
+the server side, registering the public keys of two known clients:</p><div class="lstlisting"><span style="font-size:small"><span style="font-weight:bold">from</span></span><span style="font-size:small"> </span><span style="font-size:small">omniORB</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-weight:bold">import</span></span><span style="font-size:small"> </span><span style="font-size:small">httpCrypto</span><span style="font-size:small">
+</span><span style="font-size:small">httpCrypto</span><span style="font-size:small">.</span><span style="font-size:small">init</span><span style="font-size:small">(</span><span style="font-size:small"><span style="font-size:small">"server-ident"</span></span><span style="font-size:small">, </span><span style="font-size:small"><span style="font-size:small">"server_private.pem"</span></span><span style="font-size:small">, </span><span style="font-size:small">True</span><span style="font-size:small">)</span><span style="font-size:small">
+</span><span style="font-size:small">httpCrypto</span><span style="font-size:small">.</span><span style="font-size:small">addClient</span><span style="font-size:small">(</span><span style="font-size:small"><span style="font-size:small">"client-ident1"</span></span><span style="font-size:small">, </span><span style="font-size:small"><span style="font-size:small">"client1_public.pem"</span></span><span style="font-size:small">, </span><span style="font-size:small">True</span><span style="font-size:small">)</span><span style="font-size:small">
+</span><span style="font-size:small">httpCrypto</span><span style="font-size:small">.</span><span style="font-size:small">addClient</span><span style="font-size:small">(</span><span style="font-size:small"><span style="font-size:small">"client-ident2"</span></span><span style="font-size:small">, </span><span style="font-size:small"><span style="font-size:small">"client2_public.pem"</span></span><span style="font-size:small">, </span><span style="font-size:small">True</span><span style="font-size:small">)</span></div><p>and on the client:</p><div class="lstlisting"><span style="font-size:small"><span style="font-weight:bold">from</span></span><span style="font-size:small"> </span><span style="font-size:small">omniORB</span><span style="font-size:small"> </span><span style="font-size:small"><span style="font-weight:bold">import</span></span><span style="font-size:small"> </span><span style="font-size:small">httpCrypto</span><span style="font-size:small">
+</span><span style="font-size:small">httpCrypto</span><span style="font-size:small">.</span><span style="font-size:small">init</span><span style="font-size:small">(</span><span style="font-size:small"><span style="font-size:small">"client-ident1"</span></span><span style="font-size:small">, </span><span style="font-size:small"><span style="font-size:small">"client1_private.pem"</span></span><span style="font-size:small">, </span><span style="font-size:small">True</span><span style="font-size:small">)</span><span style="font-size:small">
+</span><span style="font-size:small">httpCrypto</span><span style="font-size:small">.</span><span style="font-size:small">addServer</span><span style="font-size:small">(</span><span style="font-size:small"><span style="font-size:small">"http://server.example.com:8000/call"</span></span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                     </span><span style="font-size:small"><span style="font-size:small">"server_public.pem"</span></span><span style="font-size:small">, </span><span style="font-size:small">True</span><span style="font-size:small">)</span></div>
+<h2 id="sec101" class="section">7.10&#XA0;&#XA0;ZIOP</h2>
+<p>omniORB has support for ZIOP, which compresses transmitted
+messages. To use it, import <span style="font-family:monospace">omniORB.omniZIOP</span>.</p><p>On Unix platforms, ZIOP support is automatically enabled if the
+configure script detects zlib. To enable it on Windows, set the
+<span style="font-family:monospace">EnableZIOP</span> make variable in the platform configuration file.</p><p>omniORB has an almost complete implementation of the ZIOP
+specification, with the following extensions and differences:</p><ol class="enumerate" type=1><li class="li-enumerate">
+Client-side policies are global, set with
+<span style="font-family:monospace">omniZIOP.setGlobalPolicies()</span>.
+<span style="font-family:monospace">CORBA.Object._set_policy_overrides()</span> is not supported.</li><li class="li-enumerate">POAs can be created with ZIOP policies as shown in
+<span style="font-family:monospace">examples/ziop/ziop_srv.py</span>, but in the absence of specific
+policies, they also use the global policies set with
+<span style="font-family:monospace">omniZIOP.setGlobalPolicies()</span>. This is useful to apply ZIOP
+policies to the RootPOA or omniINSPOA.
+</li></ol><p>In addition to the standard policies, whether or not to
+enable ZIOP is determined by client and server transport rules. For a
+client to use ZIOP, the matching client transport rule must include
+&#X2018;<span style="font-family:monospace">ziop</span>&#X2019;; similarly, for a server to use ZIOP, the matching
+server transport rule must include &#X2018;<span style="font-family:monospace">ziop</span>&#X2019;. e.g. to use the
+examples:</p><pre class="verbatim">  ziop_srv.py -ORBserverTransportRule "* unix,ssl,tcp,ziop"
+
+  ziop_clt.py -ORBclientTransportRule "* unix,ssl,tcp,ziop" IOR:...
+</pre><p>This allows you to enable ZIOP for WAN links, but disable it
+for LAN communication, for example.</p>
+<h3 id="sec102" class="subsection">7.10.1&#XA0;&#XA0;Forcing ZIOP Policies</h3>
+<p>The fact that a server supports ZIOP is encoded in its IORs. This
+means that if a client uses a <span style="font-family:monospace">corbaloc</span> URI to reference an
+object, the object reference does not contain ZIOP details, and thus
+the communication cannot use ZIOP. If a client is absolutely certain
+that a server supports ZIOP, it can extend an object reference with
+ZIOP details using <span style="font-family:monospace">omniZIOP.setServerPolicies()</span>. Using the new
+object reference, the client will be able to make ZIOP calls.</p><div class="lstlisting"><span style="font-size:small">ziop_obj</span><span style="font-size:small"> = </span><span style="font-size:small">omniZIOP</span><span style="font-size:small">.</span><span style="font-size:small">serServerPolicies</span><span style="font-size:small">(</span><span style="font-size:small">obj</span><span style="font-size:small">, </span><span style="font-size:small">policies</span><span style="font-size:small">)</span></div><p>Creating a ZIOP-enabling object reference in this way is dangerous!
+If the server does not actually support ZIOP, it will receive
+compressed messages that it cannot handle. A well-behaved server will
+throw a <span style="font-family:monospace">CORBA.MARSHAL</span> exception in response, or perhaps just
+drop the invalid connection.</p>
+<h2 id="sec103" class="section">7.11&#XA0;&#XA0;Connection Management Extension</h2>
+<p>The <span style="font-family:monospace">omniConnectionMgmt</span> module provides an omniORB-specific
+extension for application-level connection management. Its purpose is
+to allow clients and servers to negotiate private GIOP connections,
+and to control how the connections are used in multi-threaded
+situations.</p><p>The <span style="font-family:monospace">omniConnectionMgmt</span> library has two functions:</p><div class="lstlisting"><span style="font-size:small">  </span><span style="font-size:small">init</span><span style="font-size:small">()</span><span style="font-size:small">
+</span><span style="font-size:small">  </span><span style="font-size:small">makeRestrictedReference</span><span style="font-size:small">(</span><span style="font-size:small">object_ref</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">connection_id</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">max_connections</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">max_threads</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">data_batch</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">permit_interleaved</span><span style="font-size:small">,</span><span style="font-size:small">
+</span><span style="font-size:small">                          </span><span style="font-size:small">server_hold_open</span><span style="font-size:small">);</span><span style="font-size:small">
+</span><span style="font-size:small">};</span></div><p>The <span style="font-family:monospace">init()</span> function must be called before <span style="font-family:monospace">CORBA.ORB_init()</span> in
+every process that is to take part in the connection management.</p><p>The <span style="font-family:monospace">makeRestrictedReference()</span> function is the single entry-point to
+the connection management functionality. It builds an annotated object
+reference that contains information for the connection management
+system. It returns a new reference, leaving the original object
+reference unchanged.</p>
+<h3 id="sec104" class="subsection">7.11.1&#XA0;&#XA0;Client-side parameters</h3>
+<p>These parameters affect the client side of a connection:</p><p><span style="font-family:monospace">connection_id</span></p><p>This number identifies the private connection set. All object
+references with the same <span style="font-family:monospace">connection_id</span> will share the same set
+of GIOP connections. Object references with different connection ids
+are guaranteed to use different connections from each other, and from
+object references that have not been annotated with
+<span style="font-family:monospace">makeRestrictedReference()</span>.</p><p><span style="font-family:monospace">max_connections</span></p><p>This parameter overrides the omniORB <span style="font-family:monospace">maxGIOPConnectionPerServer</span>
+configuration parameter for the given <span style="font-family:monospace">connection_id</span>. It
+determines the maximum number of separate GIOP connections that will
+be opened to the object&#X2019;s server to service concurrent calls. It is
+common to set this value to 1, indicating that only one connection
+will be used for the given <span style="font-family:monospace">connection_id</span>. Note that this
+parameter can only be used to reduce the default
+<span style="font-family:monospace">maxGIOPConnectionPerServer</span> value, not increase it.</p><p><span style="font-family:monospace">data_batch</span></p><p>omniORB usually configures its TCP connections to disable Nagle&#X2019;s
+algorithm, which batches small messages together into single IP
+packages, since that is best for the usual CORBA usage pattern of
+two-way requests. Setting this parameter to true overrides that, and
+enables Nagle&#X2019;s algorithm on TCP connections or equivalent
+functionality on other transports. This can increase throughput if a
+client is sending a large number of small oneway calls.</p><p><span style="font-family:monospace">permit_interleaved</span></p><p>This parameter overrides the <span style="font-family:monospace">oneCallPerConnection</span> configuration
+parameter that determines whether multi-threaded clients can
+interleave calls on a single connection, issuing a new request message
+while a previous request is still waiting for a reply. If
+<span style="font-family:monospace">permit_interleaved</span> is true, clients can interleave messages;
+if it is false, they cannot.</p>
+<h3 id="sec105" class="subsection">7.11.2&#XA0;&#XA0;Server-side parameters</h3>
+<p>These parameters affect the client side of a connection:</p><p><span style="font-family:monospace">max_threads</span></p><p>This parameter overrides the global
+<span style="font-family:monospace">maxServerThreadPerConnection</span> configuration parameter that
+determines the maximum number of concurrent threads the server will
+use to service requests coming from a connection. Note that this
+parameter is only relevant if either the client permits interleaved
+calls, or if oneway operations are used, since those are the only
+circumstances under which the server can receive a new request on a
+connection while already handling a request. As with the
+<span style="font-family:monospace">max_connections</span> client-side parameter, this parameter can only
+reduce the default number of threads, not increase it.</p><p><span style="font-family:monospace">server_hold_open</span></p><p>Normally, both clients and servers can decide to close a GIOP
+connection at any time. When using normal two-way calls, this is no
+problem since if a server closes a connection, the client is
+guaranteed to notice it when it waits for a reply, and can retry the
+call if necessary. With oneway calls, however, if a server closes a
+connection just as the client is sending a request, the client will
+not know whether the oneway call was received or not, and the call
+will potentially be lost. By setting the <span style="font-family:monospace">server_hold_open</span>
+parameter to true, the server will not close the connection, relying
+on the client to do so. In that case, oneway calls will not be lost
+unless there is a network problem that breaks the GIOP connection.</p>
+<h3 id="sec106" class="subsection">7.11.3&#XA0;&#XA0;Usage</h3>
+<p>The omniConnectionMgmt extension is very easy to use&#X2014;simply call the
+<span style="font-family:monospace">init()</span> method in all processes involved, then restrict references
+as required. The <span style="font-family:monospace">makeRestrictedReference()</span> function adds profile
+information to the object reference&#X2019;s IOR, meaning that the parameters
+become part of the object reference and are transmitted along with
+it. In other words, a server can create a restricted reference and
+send it to a client, and the client will automatically make use of the
+restricted parameters when it invokes operations on the object
+reference. Alternatively, a client can restrict a normal reference it
+receives, in order to change its own behaviour.</p>
+<hr>
+<a href="omniORBpy006.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="omniORBpy008.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>

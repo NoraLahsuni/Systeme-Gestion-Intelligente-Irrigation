@@ -1,0 +1,770 @@
+Sun  9 Jan 21:59:37 GMT 2022
+============================
+
+- This is omniORBpy 4.3.0.
+
+
+Sun  9 Jan 21:56:25 GMT 2022
+============================
+
+- Fix missed support for Python 3.10+.
+
+modules/httpCrypto/dir.mk
+modules/httpTP/dir.mk
+
+
+Sun  9 Jan 15:08:22 GMT 2022
+============================
+
+- Updates for 4.3.0 release.
+
+README.txt
+ReleaseNotes.txt
+contrib/RPMs/omniORBpy.spec
+mk/version.mk
+
+
+Sun 21 Nov 14:22:17 GMT 2021
+============================
+
+- No longer use -flat_namespace on Mac OS.
+
+mk/beforeauto.mk.in
+
+
+Sun 21 Nov 11:13:35 GMT 2021
+============================
+
+- Avoid indirections to clashing valuebox types.
+
+modules/pyValueType.cc
+
+
+Sun 31 Oct 18:09:45 GMT 2021
+============================
+
+- Support Python 3.10.
+
+examples/embed/dir.mk
+mk/python.mk
+modules/codesets/dir.mk
+modules/connections/dir.mk
+modules/dir.mk
+modules/sslTP/dir.mk
+modules/ziop/dir.mk
+
+
+Tue 23 Mar 20:54:20 GMT 2021
+============================
+
+- Replace invalid unicode characters when marshalling, rather than
+  throwing DATA_CONVERSION.
+
+modules/pyMarshal.cc
+
+
+Tue 23 Mar 17:24:00 GMT 2021
+============================
+
+- Fix crash with unicode strings that are invalid for utf-8.
+
+modules/pyMarshal.cc
+
+
+Thu 31 Dec 18:09:21 GMT 2020
+Sat 13 Mar 23:48:26 GMT 2021
+============================
+
+- Avoid functions that are deprecated in Python 3.9.
+
+modules/omnipy.cc
+modules/pyExceptions.cc
+modules/pyLocalObjects.cc
+modules/pyMarshal.cc
+modules/pyThreadCache.cc
+
+
+Sat 13 Mar 23:10:21 GMT 2021
+============================
+
+- Add missing OMNI prefix to some #ifdefs.
+
+modules/pyCallDescriptor.cc
+modules/pyFixed.cc
+modules/pyObjectRef.cc
+
+
+Sat 13 Mar 22:42:09 GMT 2021
+============================
+
+- Enable make -j.
+
+mk/beforeauto.mk.in
+
+
+Fri 26 Feb 09:37:26 GMT 2021
+============================
+
+- Handle aliases in struct repr().
+
+python3/omniORB/__init__.py
+
+- Correct DLL loading imports for libraries that are not in 4.2.
+
+python3/omniORB/httpCrypto.py
+python3/omniORB/httpTP.py
+
+
+Thu 31 Dec 18:09:21 GMT 2020
+============================
+
+- Correct capitalisation of TimeOut in docs and sample.cfg. Thanks
+  Luke Deller.
+
+doc/omniORBpy.pdf
+doc/omniORBpy/index.html
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy001.html
+doc/omniORBpy/omniORBpy002.html
+doc/omniORBpy/omniORBpy003.html
+doc/omniORBpy/omniORBpy004.html
+doc/omniORBpy/omniORBpy005.html
+doc/omniORBpy/omniORBpy006.html
+doc/omniORBpy/omniORBpy007.html
+doc/omniORBpy/omniORBpy008.html
+doc/omniORBpy/omniORBpy009.html
+doc/omniORBpy/omniORBpy010.html
+doc/omniORBpy/omniORBpy011.html
+doc/omniORBpy/omniORBpy012.html
+doc/omniORBpy/omniORBpy013.html
+doc/tex/omniORBpy.tex
+
+
+Wed  2 Dec 21:19:34 GMT 2020
+============================
+
+- Error in Python 3.8+ DLL loading for additional libraries.
+
+python3/omniORB/ZIOP.py
+python3/omniORB/codesets.py
+python3/omniORB/omniConnectionMgmt.py
+python3/omniORB/omniZIOP.py
+python3/omniORB/sslTP.py
+
+
+Mon 16 Nov 16:46:05 GMT 2020
+============================
+
+- Avoid unlocking/relocking the GIL during string marshalling, to
+  avoid spinning in Python 3's GIL implementation.
+
+modules/pyMarshal.cc
+
+
+Mon 21 Sep 22:46:33 BST 2020
+============================
+
+- Clean up and rationalise platform dependencies.
+
+acinclude.m4
+configure
+modules/omnipy.h
+modules/pyMarshal.cc
+modules/pyTypeCode.cc
+modules/pyValueType.cc
+modules/ziop/pyZIOP.cc
+
+
+Fri 18 Sep 17:12:15 BST 2020
+============================
+
+- Ensure WorkerThread object is registered in Python3.
+
+python3/omniORB/__init__.py
+
+
+Tue 18 Aug 22:54:17 BST 2020
+============================
+
+- Minor update to any.
+
+python2/omniORB/any.py
+python3/omniORB/any.py
+
+
+Fri  5 Jun 00:47:50 BST 2020
+============================
+
+- Documentation and example updates.
+
+doc/omniORBpy.pdf
+doc/omniORBpy/index.html
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy001.html
+doc/omniORBpy/omniORBpy002.html
+doc/omniORBpy/omniORBpy003.html
+doc/omniORBpy/omniORBpy004.html
+doc/omniORBpy/omniORBpy005.html
+doc/omniORBpy/omniORBpy006.html
+doc/omniORBpy/omniORBpy007.html
+doc/omniORBpy/omniORBpy008.html
+doc/omniORBpy/omniORBpy009.html
+doc/omniORBpy/omniORBpy010.html
+doc/omniORBpy/omniORBpy011.html
+doc/omniORBpy/omniORBpy012.html
+doc/omniORBpy/omniORBpy013.html
+doc/tex/omniORBpy.tex
+
+
+Fri  5 Jun 00:45:37 BST 2020
+============================
+
+- Plain object keys policy.
+
+modules/pyPOAFunc.cc
+python2/omniORB/omniPolicy.py
+python3/omniORB/omniPolicy.py
+
+
+Fri 15 May 14:11:09 BST 2020
+============================
+
+- Merge ReleaseNotes fix.
+
+ReleaseNotes.txt
+
+
+Tue 12 May 22:40:14 BST 2020
+============================
+
+- Rename python directories to python2.
+
+configure.ac
+configure
+dir.mk
+python
+python2
+
+
+Mon 11 May 23:44:12 BST 2020
+============================
+
+- Update release notes.
+
+ReleaseNotes.txt
+
+
+Mon 27 Apr 17:46:11 BST 2020
+============================
+
+- Use -O3 by default.
+
+configure.ac
+configure
+
+
+Fri 24 Apr 22:17:22 BST 2020
+============================
+
+- Return proper bools from TypeCode equivalent.
+
+python/omniORB/tcInternal.py
+python3/omniORB/tcInternal.py
+
+
+Mon  6 Apr 12:16:47 BST 2020
+============================
+
+- Updates for 4.3.0 beta 1.
+
+README.txt
+ReleaseNotes.txt
+THIS_IS_OMNIORBPY_4_3_0_BETA_1
+THIS_IS_OMNIORBPY_4_3_PRE
+mk/version.mk
+
+
+Mon  6 Apr 00:05:55 BST 2020
+============================
+
+- Merge from 4.2.4. Find DLLs on Windows Python 3.8.
+
+bin/scripts/binrelease.sh
+python3/omniORB/PortableServer.py
+python3/omniORB/ZIOP.py
+python3/omniORB/__init__.py
+python3/omniORB/codesets.py
+python3/omniORB/httpCrypto.py
+python3/omniORB/httpTP.py
+python3/omniORB/omniConnectionMgmt.py
+python3/omniORB/omniZIOP.py
+python3/omniORB/sslTP.py
+
+
+Tue 17 Dec 14:55:15 GMT 2019
+============================
+
+- Update docs and READMEs.
+
+README.txt
+doc/omniORBpy.pdf
+doc/omniORBpy/index.html
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy001.html
+doc/omniORBpy/omniORBpy012.html
+doc/tex/omniORBpy.tex
+
+
+Tue 17 Dec 11:48:20 GMT 2019
+============================
+
+- Merge ZIOP import fix and tictactoe example removal from 4_2.
+
+examples/tictactoe
+examples/tictactoe/README
+examples/tictactoe/gameClient.py
+examples/tictactoe/gameServer.py
+examples/tictactoe/tictactoe.idl
+python/omniORB/ZIOP.py
+python3/omniORB/ZIOP.py
+
+
+Tue 17 Dec 11:42:44 GMT 2019
+============================
+
+- Python 3 example fixes.
+
+examples/poa/servantactivator.py
+examples/poa/servantlocator.py
+examples/tests/pclient.py
+examples/tests/tclient.py
+examples/tests/tserver.py
+examples/ziop/example_echo.idl
+examples/ziop/ziop_srv.py
+
+
+Tue 17 Dec 09:37:53 GMT 2019
+============================
+
+- Update examples to Python 3.
+
+examples/ami/ami_callback.py
+examples/ami/ami_poller.py
+examples/echo/echo_clt.py
+examples/echo/echo_srv.py
+examples/echo/example_echo_clt.py
+examples/echo/example_echo_coloc.py
+examples/echo/example_echo_nsclt.py
+examples/echo/example_echo_nssrv.py
+examples/echo/example_echo_srv.py
+examples/embed/embed.py
+examples/poa/mainthread.py
+examples/poa/servantactivator.py
+examples/poa/servantlocator.py
+examples/poa/singlethread.py
+examples/tests/pclient.py
+examples/tests/pserver.py
+examples/tests/tclient.py
+examples/tests/tserver.py
+examples/tictactoe/gameClient.py
+examples/tictactoe/gameServer.py
+examples/valuetype/simple/server.py
+examples/valuetype/tests/client.py
+examples/valuetype/tests/server.py
+examples/ziop/ziop_clt.py
+examples/ziop/ziop_srv.py
+update.log
+
+
+Thu 26 Sep 13:30:20 BST 2019
+============================
+
+- Merge Python 3 thread interceptor fix and doc updates from 4_2.
+
+doc/omniORBpy.pdf
+doc/omniORBpy/contents_motif.gif
+doc/omniORBpy/contents_motif.svg
+doc/omniORBpy/index.html
+doc/omniORBpy/next_motif.gif
+doc/omniORBpy/next_motif.svg
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy001.html
+doc/omniORBpy/omniORBpy002.html
+doc/omniORBpy/omniORBpy003.html
+doc/omniORBpy/omniORBpy004.html
+doc/omniORBpy/omniORBpy005.html
+doc/omniORBpy/omniORBpy006.html
+doc/omniORBpy/omniORBpy007.html
+doc/omniORBpy/omniORBpy008.html
+doc/omniORBpy/omniORBpy009.html
+doc/omniORBpy/omniORBpy010.html
+doc/omniORBpy/omniORBpy011.html
+doc/omniORBpy/omniORBpy012.html
+doc/omniORBpy/omniORBpy013.html
+doc/omniORBpy/previous_motif.gif
+doc/omniORBpy/previous_motif.svg
+doc/tex/omniORBpy.tex
+modules/pyInterceptors.cc
+modules/pyThreadCache.cc
+python/omniORB/interceptors.py
+python3/omniORB/interceptors.py
+
+
+Tue 13 Aug 14:15:31 BST 2019
+============================
+
+- pypy3 support.
+
+acinclude.m4
+configure.ac
+configure
+modules/pyMarshal.cc
+
+
+Tue 13 Aug 14:13:33 BST 2019
+============================
+
+- imp removal missing from previous merge.
+
+python3/omniORB/__init__.py
+
+
+Tue 16 Jul 09:58:53 BST 2019
+============================
+
+- Avoid use of deprecated imp module with Python 3.
+
+python3/omniORB/__init__.py
+
+
+Mon  1 Jul 11:43:51 BST 2019
+============================
+
+- Properly handle Py_BAD_PARAM thrown while attempting to marshal a
+  user exception.
+
+modules/pyServant.cc
+
+
+Fri 21 Jun 09:07:36 BST 2019
+============================
+
+- Use with statement to avoid unittest warning about unclosed subprocess.
+
+python3/omniORB/__init__.py
+
+- Handle invalid received UTF-8.
+
+modules/pyMarshal.cc
+
+
+Sun  2 Jun 22:22:20 BST 2019
+============================
+
+- Correct comparison operators for enums in Python 3.
+
+python3/omniORB/__init__.py
+
+
+Mon 20 May 16:46:53 BST 2019
+============================
+
+- Properly use bytes for object ids in servant manager calls on Python 3.
+
+
+Fri 17 May 11:39:34 BST 2019
+============================
+
+- Avoid most use of deprecated imp module.
+
+python3/omniORB/__init__.py
+
+
+Fri 17 May 10:58:52 BST 2019
+============================
+
+- Small merge from 4.2.x.
+
+python/omniORB/__init__.py
+python/omniidl_be/python.py
+python3/omniORB/__init__.py
+python3/omniidl_be/python.py
+
+
+Mon  4 Mar 23:12:22 GMT 2019
+============================
+
+- WebSocket support in HTTP transport.
+
+python/omniORB/ConnectionInfo.py
+python3/omniORB/ConnectionInfo.py
+
+
+Fri 15 Feb 21:32:28 GMT 2019
+============================
+
+- omniORB.importIDL was broken on Python 3.
+
+python/omniORB/__init__.py
+python3/omniORB/__init__.py
+
+
+Tue 11 Dec 00:23:12 GMT 2018
+============================
+
+- Small merge from 4.2.3.
+
+aclocal.m4
+configure
+contrib/RPMs/omniORBpy_new.spec
+mk/version.mk
+modules/omnipy.cc
+modules/pyExceptions.cc
+modules/pyServant.cc
+
+
+Mon 26 Nov 12:46:40 GMT 2018
+============================
+
+- Add is_error flag to connection info callbacks.
+
+modules/pyomniFunc.cc
+
+Fri  9 Nov 11:41:44 GMT 2018
+============================
+
+- Allow unions to be unpickled.
+
+python/omniORB/__init__.py
+python3/omniORB/__init__.py
+
+
+Thu 27 Sep 16:57:51 BST 2018
+============================
+
+- ConnectionInfo callback.
+
+modules/pyomniFunc.cc
+python/omniORB/ConnectionInfo.py
+python/omniORB/__init__.py
+python/omniORB/dir.mk
+python3/omniORB/ConnectionInfo.py
+python3/omniORB/dir.mk
+
+
+Thu 27 Sep 11:18:38 BST 2018
+============================
+
+- Allow web proxy to be cleared; catch exceptions setting SSL and HTTP options.
+
+modules/httpTP/pyhttpTP.cc
+modules/sslTP/pysslTP.cc
+
+
+Wed 12 Sep 14:26:36 BST 2018
+============================
+
+- Remove some accidentally-committed debug logging.
+
+modules/pyomniFunc.cc
+
+
+Wed  5 Sep 16:19:11 BST 2018
+============================
+
+- Merge build fixes from 4_2 branch.
+
+mk/beforeauto.mk.in
+modules/connections/dir.mk
+modules/ziop/dir.mk
+
+
+Thu 30 Aug 13:50:10 BST 2018
+============================
+
+- Track ORB core changes.
+
+mk/version.mk
+modules/httpTP/pyhttpTP.cc
+
+
+Tue  7 Aug 10:46:27 BST 2018
+============================
+
+- Correct linkage and Windows binary release.
+
+bin/scripts/binrelease.sh
+
+
+Fri  3 Aug 15:29:12 BST 2018
+============================
+
+- Remove debug log message.
+
+modules/httpTP/pyhttpTP.cc
+
+
+Thu 26 Jul 13:27:41 BST 2018
+============================
+
+- Windows build fix.
+
+modules/dir.mk
+
+
+Wed 25 Jul 17:55:11 BST 2018
+============================
+
+- HTTP in-message crypto.
+
+ReleaseNotes.txt
+acinclude.m4
+configure.ac
+configure
+doc/omniORBpy.pdf
+doc/omniORBpy/index.html
+doc/omniORBpy/omniORBpy.css
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy006.html
+doc/omniORBpy/omniORBpy007.html
+doc/omniORBpy/omniORBpy008.html
+doc/omniORBpy/omniORBpy009.html
+doc/omniORBpy/omniORBpy010.html
+doc/omniORBpy/omniORBpy011.html
+doc/omniORBpy/omniORBpy012.html
+doc/omniORBpy/omniORBpy013.html
+doc/tex/omniORBpy.tex
+include/omniORBpy.h
+mk/beforeauto.mk.in
+modules/dir.mk
+modules/httpCrypto
+modules/httpCrypto/GNUmakefile.in
+modules/httpCrypto/GNUmakefile
+modules/httpCrypto/dir.mk
+modules/httpCrypto/pyhttpCrypto.cc
+modules/httpTP/dir.mk
+modules/httpTP/pyhttpTP.cc
+modules/omnipy.cc
+modules/omnipy.h
+modules/pyInterceptors.cc
+modules/pyObjectRef.cc
+modules/pyTypeCode.cc
+modules/pyomniFunc.cc
+modules/sslTP/pysslTP.cc
+python/omniORB/dir.mk
+python/omniORB/httpCrypto.py
+python3/omniORB/dir.mk
+python3/omniORB/httpCrypto.py
+
+
+Wed 27 Jun 10:53:08 BST 2018
+============================
+
+- Windows build fixes.
+
+bin/scripts/binrelease.sh
+modules/httpTP/dir.mk
+modules/pyTypeCode.cc
+modules/sslTP/dir.mk
+
+
+Thu  7 Jun 11:41:52 BST 2018
+============================
+
+- Set ORB global to None in destroy().
+
+python/omniORB/CORBA.py
+python3/omniORB/CORBA.py
+
+
+Mon 14 May 15:10:25 BST 2018
+============================
+
+- Initial HTTP transport.
+
+configure.ac
+configure
+mk/beforeauto.mk.in
+modules/dir.mk
+modules/httpTP
+modules/httpTP/GNUmakefile.in
+modules/httpTP/GNUmakefile
+modules/httpTP/dir.mk
+modules/httpTP/pyhttpTP.cc
+python/omniORB/dir.mk
+python/omniORB/httpTP.py
+python3/omniORB/dir.mk
+python3/omniORB/httpTP.py
+
+
+Fri 11 May 12:51:29 BST 2018
+============================
+
+- Cleaner SSL context.
+
+modules/sslTP/pysslTP.cc
+python/omniORB/sslTP.py
+python3/omniORB/sslTP.py
+
+
+Fri 11 May 12:18:05 BST 2018
+============================
+
+- Doc version updates.
+
+doc/omniORBpy.pdf
+doc/omniORBpy/index.html
+doc/omniORBpy/omniORBpy.html
+doc/omniORBpy/omniORBpy001.html
+doc/omniORBpy/omniORBpy002.html
+doc/omniORBpy/omniORBpy003.html
+doc/omniORBpy/omniORBpy004.html
+doc/omniORBpy/omniORBpy005.html
+doc/omniORBpy/omniORBpy006.html
+doc/omniORBpy/omniORBpy007.html
+doc/omniORBpy/omniORBpy008.html
+doc/omniORBpy/omniORBpy009.html
+doc/omniORBpy/omniORBpy010.html
+doc/omniORBpy/omniORBpy011.html
+doc/omniORBpy/omniORBpy012.html
+doc/omniORBpy/omniORBpy013.html
+doc/tex/omniORBpy.tex
+
+- Python 3 C++ API instructions.
+
+include/omniORBpy.h
+
+
+Tue  8 May 18:13:36 BST 2018
+============================
+
+- PyPy support.
+
+examples/tests/tclient.py
+mk/python.mk
+modules/omnipy.h
+modules/pyThreadCache.h
+modules/pyTypeCode.cc
+
+
+Wed 18 Apr 18:26:27 BST 2018
+============================
+
+- Support vast messages (merge from trunk).
+
+modules/omnipy_sysdep.h
+modules/pyTypeCode.cc
+modules/pyValueType.cc
+
+
+Wed 18 Apr 18:21:21 BST 2018
+============================
+
+- Start of the omniORB 4.3 development branch.
+
+README.txt
+ReleaseNotes.txt
+configure.ac
+configure
+contrib/RPMs/omniORBpy.spec
+mk/version.mk
