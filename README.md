@@ -40,7 +40,7 @@ L’objectif est d’**optimiser la consommation d’eau** et de **minimiser les
 |-------------------|---------------------------|
 | Microcontrôleur   | Arduino / ESP32 (C++)     |
 | Communication     | CORBA (omniORB)           |
-| Base de données   | MySQL                     |
+| Base de données   | SQLite                    |
 | Interface Web     | Flask (Python), HTML/CSS  |
 
 &nbsp;
