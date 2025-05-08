@@ -1,0 +1,6 @@
+// fichier : Irrigation.idl
+module SDR {
+  interface CapteurData {
+    void envoyerDonnees(in float temperature, in float humidite, in long potValue, in boolean pompe);
+  };
+};
