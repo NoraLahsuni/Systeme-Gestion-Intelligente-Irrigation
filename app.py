@@ -4,6 +4,7 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 from datetime import timedelta
+import sqlite3
 
 app = Flask(__name__)
 CORS(app)
@@ -34,7 +35,6 @@ class User(db.Model):
 # Create all database tables
 with app.app_context():
     db.create_all()
-
     # Insert a test user if it doesn't exist
     test_user = User.query.filter_by(username='iise').first()
     if not test_user:
@@ -47,7 +47,6 @@ with app.app_context():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-
     if not data or not data.get('username') or not data.get('password'):
         return jsonify({
             'message': 'Veuillez fournir un nom d\'utilisateur et un mot de passe.',
@@ -97,5 +96,39 @@ def validate_token():
             'isValid': False
         }), 401
 
+# ✅ Nouvel endpoint : récupérer les données des capteurs
+@app.route('/api/mesures', methods=['GET'])
+def get_mesures():
+    try:
+        conn = sqlite3.connect('donnees_capteurs.db')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM mesures ORDER BY timestamp DESC LIMIT 10")
+        rows = cur.fetchall()
+        conn.close()
+
+        # Format JSON
+        mesures = []
+        for row in rows:
+            mesures.append({
+                'id': row[0],
+                'temperature': row[1],
+                'humidite': row[2],
+                'potentiometre': row[3],
+                'pompe': bool(row[4]),
+                'timestamp': row[5]
+            })
+
+        return jsonify({
+            'status': 'success',
+            'donnees': mesures
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+# Lancer le serveur
 if __name__ == '__main__':
     app.run(debug=True)
