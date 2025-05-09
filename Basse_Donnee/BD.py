@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template # type: ignore
 import sys
 import json
 import sqlite3
-#---------------------
+
 # --- Function to Initialize SQLite Database ---
 def initialize_database():
     """Creates the database file and table if they don't exist."""
@@ -29,7 +29,6 @@ def initialize_database():
     except sqlite3.Error as e:
         print(f"FATAL ERROR: Failed to initialize SQLite database: {e}", file=sys.stderr)
         return False
-# -----------------------------------------
 
 # --- Function to Save Data to SQLite ---
 def save_to_database(timestamp, temp, air_hum, soil_moist, pump_on):
@@ -49,7 +48,6 @@ def save_to_database(timestamp, temp, air_hum, soil_moist, pump_on):
     except sqlite3.Error as e:
         print(f"ERROR saving data to SQLite database: {e}", file=sys.stderr)
         return False
-# --------------------------------------
 
 # --- Function to Get Readings from DB (Used by Web UI and JSON API) ---
 def get_readings_from_db(limit=None):
