@@ -2,18 +2,42 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 import sqlite3
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS properly
+CORS(app, resources={
+    r"/api/*": {  # Apply CORS to all /api/ routes
+        "origins": ["http://localhost:3000", "http://localhost:5173"], 
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Range", "X-Content-Range"],
+        "supports_credentials": True,
+        "max_age": 120 
+    }
+})
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'IISE_2025'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+
+# Configure JWT to handle CORS
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
+app.config['JWT_HEADER_NAME'] = 'Authorization'
+app.config['JWT_HEADER_TYPE'] = 'Bearer'
 
 # Initialize extensions
 db = SQLAlchemy(app)
@@ -43,42 +67,83 @@ with app.app_context():
         db.session.add(test_user)
         db.session.commit()
 
-# Login API endpoint
-@app.route('/api/login', methods=['POST'])
+# Modified login endpoint with CORS headers
+@app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
-    data = request.get_json()
-    if not data or not data.get('username') or not data.get('password'):
-        return jsonify({
-            'message': 'Veuillez fournir un nom d\'utilisateur et un mot de passe.',
-            'status': 'error'
-        }), 400
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return jsonify({}), 200
 
-    user = User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['username']).first()
-
-    if not user or not user.check_password(data['password']):
-        return jsonify({
-            'message': 'Identifiants invalides. Veuillez vérifier vos informations de connexion.',
-            'status': 'error'
-        }), 401
-
-    # Create access token
-    access_token = create_access_token(identity=user.username)
-
-    return jsonify({
-        'message': 'Connexion réussie. Bienvenue!',
-        'status': 'success',
-        'access_token': access_token,
-        'username': user.username,
-        'email': user.email
-    }), 200
-
-# Token validation API endpoint
-@app.route('/api/validate-token', methods=['POST'])
-def validate_token():
     try:
-        verify_jwt_in_request()
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'message': 'Données JSON manquantes',
+                'status': 'error'
+            }), 400
+
+        username_or_email = data.get('username')
+        password = data.get('password')
+
+        if not username_or_email or not password:
+            return jsonify({
+                'message': 'Veuillez fournir un nom d\'utilisateur/email et un mot de passe.',
+                'status': 'error'
+            }), 400
+
+        user = User.query.filter(
+            (User.username == username_or_email) |
+            (User.email == username_or_email)
+        ).first()
+
+        if not user or not user.check_password(password):
+            return jsonify({
+                'message': 'Identifiants invalides. Veuillez vérifier vos informations de connexion.',
+                'status': 'error'
+            }), 401
+
+        access_token = create_access_token(
+            identity=user.username,
+            additional_claims={
+                "email": user.email,
+                "user_id": user.id
+            }
+        )
+
+        response = jsonify({
+            'message': 'Connexion réussie. Bienvenue!',
+            'status': 'success',
+            'access_token': access_token,
+            'username': user.username,
+            'email': user.email
+        })
+
+        return response, 200
+
+    except Exception as e:
+        return jsonify({
+            'message': f'Erreur lors de la connexion: {str(e)}',
+            'status': 'error'
+        }), 500
+
+# Modified validate-token endpoint with CORS headers
+@app.route('/api/validate-token', methods=['GET', 'OPTIONS'])
+@jwt_required()
+def validate_token():
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return jsonify({}), 200
+
+    try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(username=current_user).first()
+
+        if not user:
+            return jsonify({
+                'message': 'Utilisateur non trouvé',
+                'status': 'error',
+                'isValid': False
+            }), 401
 
         return jsonify({
             'message': 'Token valide',
@@ -89,12 +154,15 @@ def validate_token():
                 'email': user.email
             }
         }), 200
+
     except Exception as e:
         return jsonify({
-            'message': 'Token invalide ou expiré',
+            'message': f'Erreur lors de la validation du token: {str(e)}',
             'status': 'error',
             'isValid': False
         }), 401
+
+
 
 # ✅ Nouvel endpoint : récupérer les données des capteurs
 @app.route('/api/mesures', methods=['GET'])
