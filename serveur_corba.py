@@ -36,7 +36,7 @@ class IrrigationImpl(SDR__POA.CapteurData):
         conn.close()
 
         return "Données enregistrées avec succès"
-###########################################################3
+
     def arroser(self):
         print("Système d'irrigation activé.")
         return "Arrosage terminé"
