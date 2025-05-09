@@ -15,7 +15,7 @@ class IrrigationImpl(SDR__POA.CapteurData):
         conn = sqlite3.connect("donnees_capteurs.db")
         cur = conn.cursor()
 
-        # Créer la table si elle n'existe pas
+        # Créer la table si elle n'existe pas 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS capteurs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +26,7 @@ class IrrigationImpl(SDR__POA.CapteurData):
             )
         """)
 
-        # ✅ Insérer les données
+        # Insérer les données
         cur.execute("""
             INSERT INTO capteurs (temperature, humidite, potentiometre, pompe)
             VALUES (?, ?, ?, ?)
@@ -36,7 +36,7 @@ class IrrigationImpl(SDR__POA.CapteurData):
         conn.close()
 
         return "Données enregistrées avec succès"
-
+###########################################################3
     def arroser(self):
         print("Système d'irrigation activé.")
         return "Arrosage terminé"
