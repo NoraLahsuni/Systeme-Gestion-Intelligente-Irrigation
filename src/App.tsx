@@ -1,13 +1,39 @@
-import Home from "./modules/LoadingPage/Home"
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProtectRoute from "./ProtectRoutes/ProtectRoutes";
+import DashBoard from "./modules/Dash/DashBoard";
+import { AdminProvider, useUserContext } from './context/UserAuth';
+import { Loader } from '@mantine/core';
+import Home from './modules/LoadingPage/Home';
+
+
+const AppContent = () => {
+  const { loading } = useUserContext();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Loader />
+      </div>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<ProtectRoute><DashBoard /></ProtectRoute>} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
 
 const App = () => {
   return (
-    <>
-    
-      <Home />
-    
-    </>
-  )
-}
+    <AdminProvider>
+      <AppContent />
+    </AdminProvider>
+  );
+};
 
-export default App
+export default App;
