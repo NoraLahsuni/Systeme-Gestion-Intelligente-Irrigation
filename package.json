@@ -10,15 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mantine/charts": "^7.17.7",
     "@mantine/core": "^7.17.1",
     "@mantine/hooks": "^7.17.1",
     "@tailwindcss/postcss": "^4.0.12",
     "axios": "^1.9.0",
+    "chart.js": "^4.4.9",
     "js-cookie": "^3.0.5",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.503.0",
     "postcss-simple-vars": "^7.0.1",
     "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.6.0",
     "tailwind-preset-mantine": "^2.0.3"

@@ -2,6 +2,7 @@ import { Thermometer , Waves ,Droplets  } from 'lucide-react';
 import { useEffect, useState  } from 'react';
 import axios from 'axios';
 import {Alert} from '@mantine/core';
+import DateCharts from './Components/DateCharts';
 
 const DashBoard = () => {
     const [lastTemperature, setLastTemperature] = useState(0);
@@ -10,22 +11,21 @@ const DashBoard = () => {
     const [lastTimestamp, setLastTimestamp] = useState('');
     const[error, setError] = useState('');
 
+   const [mesures, setMesures] = useState([]);
+
     //get all data from the backend
-    // useEffect(() => {
-    //     const fetchData = async () => { 
-    //         try {
-    //             const response = await axios.get(`${import.meta.env.VITE_BACK_END}/api/mesures`);
-    //             const data = response.data;
-    //             setTemperature(data.temperature);
-    //             setHumidite(data.humidite);
-    //             setPompe(data.pompe);
-    //             console.log(data);
-    //         } catch (error) {
-    //             console.error('Erreur lors de la récupération des données:', error);
-    //         }
-    //     };
-    //     fetchData();
-    // }, []);
+    useEffect(() => {
+        const fetchData = async () => { 
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_BACK_END}/api/mesures`);
+                const data = response.data;
+                setMesures(data);
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données:', error);
+            }
+        };
+        fetchData();
+    }, []);
 
     //get the last data from the backend
     useEffect(() => {
@@ -54,9 +54,9 @@ const DashBoard = () => {
         fetchData();
         
         // Fetch new data every 5 seconds
-        const interval = setInterval(fetchData, 5000);
+        //const interval = setInterval(fetchData, 5000);
         // Cleanup interval on component unmount
-        return () => clearInterval(interval);
+        //return () => clearInterval(interval);
     }, []);
     
 
@@ -77,7 +77,7 @@ const DashBoard = () => {
        </div>
 
         <div className='flex justify-center items-center'>
-            <p className='text-gray-600'>
+            <p className='text-gray-600 text-sm text-center'>
                 Dernière mise à jour : {lastTimestamp}
             </p>
         </div>
@@ -125,6 +125,12 @@ const DashBoard = () => {
                 <p className='text-gray-500 text-center text-sm'>
                     Pompe Etat
                 </p>
+            </div>
+        </div>
+
+        <div className='p-1'>
+            <div className='w-full mx-auto max-w-5xl my-4 py-3 px-1 bg-white rounded-lg'>
+                <DateCharts />
             </div>
         </div>
     </>

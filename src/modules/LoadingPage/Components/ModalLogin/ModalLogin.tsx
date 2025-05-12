@@ -44,7 +44,7 @@ const ModalLogin = ({opened, close}: {opened: boolean, close: () => void}) => {
             }
             setIsLoading(false)
         } catch (error: any) {
-            setError(error?.response?.data?.message)
+            setError(error?.response?.data?.message || error?.message || 'Une erreur est survenue')
             setIsLoading(false)
         }
     }
