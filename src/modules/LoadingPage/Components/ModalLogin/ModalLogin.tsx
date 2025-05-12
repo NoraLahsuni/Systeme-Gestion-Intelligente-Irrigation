@@ -3,8 +3,11 @@ import { useState } from 'react'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
+import { useUserContext } from '../../../../context/UserAuth'
 
 const ModalLogin = ({opened, close}: {opened: boolean, close: () => void}) => {
+
+    const { fetchUserData } = useUserContext()
 
     const [emailOrUsername, setEmailOrUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -33,6 +36,7 @@ const ModalLogin = ({opened, close}: {opened: boolean, close: () => void}) => {
             if (response.status === 200) {
                 setError('')
                 Cookies.set('token', data?.access_token);
+                fetchUserData()
                 navigate('/dashboard')
             }
             else {

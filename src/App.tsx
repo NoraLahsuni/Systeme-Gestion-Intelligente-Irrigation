@@ -4,6 +4,7 @@ import DashBoard from "./modules/Dash/DashBoard";
 import { AdminProvider, useUserContext } from './context/UserAuth';
 import { Loader } from '@mantine/core';
 import Home from './modules/LoadingPage/Home';
+import MainLayout from './MainLayout/MainLayout';
 
 
 const AppContent = () => {
@@ -21,7 +22,7 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<ProtectRoute><DashBoard /></ProtectRoute>} />
+        <Route path="/dashboard" element={<ProtectRoute><MainLayout><DashBoard /></MainLayout></ProtectRoute>} />
       </Routes>
     </BrowserRouter>
   );
