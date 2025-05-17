@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 import sqlite3
-from FakeData import start_fake_data_generator
 
 app = Flask(__name__)
 
@@ -174,7 +173,7 @@ def get_mesures():
         cur.execute("SELECT * FROM mesures ORDER BY timestamp DESC LIMIT 10")
         rows = cur.fetchall()
         conn.close()
-        
+
 
         # Format JSON
         mesures = []
@@ -238,6 +237,4 @@ def get_last_mesure():
 
 # Lancer le serveur
 if __name__ == '__main__':
-    # Start the fake data generator
-    start_fake_data_generator()
     app.run(debug=True)
