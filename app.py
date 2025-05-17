@@ -174,6 +174,7 @@ def get_mesures():
         cur.execute("SELECT * FROM mesures ORDER BY timestamp DESC LIMIT 10")
         rows = cur.fetchall()
         conn.close()
+        
 
         # Format JSON
         mesures = []
