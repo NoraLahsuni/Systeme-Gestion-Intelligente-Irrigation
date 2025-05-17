@@ -15,7 +15,7 @@ const MainLayout = ({children}:{children:React.ReactNode}) => {
                     <img src={logo} alt="logo" width={30} height={30} className='scale-350 mt-0.5'/>
                     <Button
                         variant='outline'
-                        color='red'
+                        color='black'
                         leftSection={<LogOut size={16} />}
                         onClick={()=>{
                             Cookies.remove('token')

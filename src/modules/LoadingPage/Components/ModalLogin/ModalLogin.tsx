@@ -59,7 +59,7 @@ const ModalLogin = ({opened, close}: {opened: boolean, close: () => void}) => {
     }
 
   return (
-    <Modal opened={opened} onClose={handleClose} centered>
+    <Modal opened={opened} onClose={handleClose} centered title='Connexion'>
         <form className='flex flex-col gap-2' onSubmit={handleSubmit}>
             <div className='flex flex-col gap-1'>
                 <TextInput 

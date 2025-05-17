@@ -25,14 +25,18 @@ function TemperatureChart() {
     useEffect(() => {
         const fetchData = async () => { 
         try {
-            const response = await axios.get<ApiResponse>(`${import.meta.env.VITE_BACK_END}/api/mesures`);
-            setMesures(response.data.donnees);
+            const response = await axios.get(`${import.meta.env.VITE_LIEN_OF_DATA}/api/mesures`);
+            setMesures(response.data);
         } catch (error) {
             console.error('Erreur lors de la récupération des données:', error);
             setError('Erreur lors de la récupération des données');
         }
         };
         fetchData();
+        // Fetch new data every 5 minutes
+        const interval = setInterval(fetchData, 300000);
+        // Cleanup interval on component unmount
+        return () => clearInterval(interval);
     }, []);
 
     const chartData = {
