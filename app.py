@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 import sqlite3
+from FakeData import start_fake_data_generator
 
 app = Flask(__name__)
 
@@ -182,7 +183,7 @@ def get_mesures():
                 'temperature': row[1],
                 'humidite': row[2],
                 'potentiometre': row[3],
-                'pompe': bool(row[4]),
+                'pompe': row[4],
                 'timestamp': row[5]
             })
 
@@ -196,7 +197,46 @@ def get_mesures():
             'status': 'error',
             'message': str(e)
         }), 500
+    
+
+# ✅ Endpoint : récupérer la dernière mesure
+@app.route('/api/mesures/last', methods=['GET'])
+def get_last_mesure():
+    try:
+        conn = sqlite3.connect('donnees_capteurs.db')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM mesures ORDER BY timestamp DESC LIMIT 1")
+        row = cur.fetchone()
+        conn.close()
+
+        if row is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Aucune mesure trouvée'
+            }), 404
+
+        mesure = {
+            'id': row[0],
+            'temperature': row[1],
+            'humidite': row[2],
+            'potentiometre': row[3],
+            'pompe': row[4],
+            'timestamp': row[5]
+        }
+
+        return jsonify({
+            'status': 'success',
+            'donnee': mesure
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 # Lancer le serveur
 if __name__ == '__main__':
+    # Start the fake data generator
+    start_fake_data_generator()
     app.run(debug=True)
