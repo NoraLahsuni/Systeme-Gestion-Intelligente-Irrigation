@@ -7,7 +7,7 @@ import SDR__POA
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# ✅ Initialisation Flask
+# ✅ Flask initialization
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -18,7 +18,7 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-# ✅ Initialisation de la base de données
+# ✅ Database initialization
 def init_db():
     conn = sqlite3.connect("donnees_capteurs.db")
     cur = conn.cursor()
@@ -35,28 +35,28 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ✅ Classe CORBA implémentée
+# ✅ CORBA class implementation
 class IrrigationImpl(SDR__POA.CapteurData):
     def envoyerDonnees(self, temperature, humidite, humidite2, pompe):
-        print("➡️ Données reçues via CORBA :")
-        print(f"Température : {temperature}°C | Humidité de sol: {humidite}% |Humidité: {humidite2}| Pompe : {'ON' if pompe else 'OFF'}")
+        print("➡️ Data received via CORBA:")
+        print(f"Temperature: {temperature}°C | Soil Humidity: {humidite}% | Humidity: {humidite2} | Pump: {'ON' if pompe else 'OFF'}")
 
         conn = sqlite3.connect("donnees_capteurs.db")
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO capteurs (temperature, humidite,humidite2, pompe)
-            VALUES (?, ?, ? ,?)
-        """, (temperature, humidite,humidite2, 'ON' if pompe else 'OFF'))
+            INSERT INTO capteurs (temperature, humidite, humidite2, pompe)
+            VALUES (?, ?, ?, ?)
+        """, (temperature, humidite, humidite2, 'ON' if pompe else 'OFF'))
         conn.commit()
         conn.close()
 
-        return "Données enregistrées avec succès"
+        return "Data successfully saved"
 
     def arroser(self):
-        print("Système d'irrigation activé.")
-        return "Arrosage terminé"
+        print("Irrigation system activated.")
+        return "Irrigation completed"
 
-# ✅ Routes REST
+# ✅ REST routes
 @app.route('/api/mesures', methods=['GET'])
 def get_all_data():
     conn = sqlite3.connect("donnees_capteurs.db")
@@ -65,7 +65,7 @@ def get_all_data():
     rows = cur.fetchall()
     conn.close()
     result = [
-        {"id": row[0], "temperature": row[1], "humidite": row[2],"humidite2":row[3],"timestamp": row[4], "pompe": row[5]}
+        {"id": row[0], "temperature": row[1], "humidite": row[2], "humidite2": row[3], "timestamp": row[4], "pompe": row[5]}
         for row in rows
     ] if rows else []
     return jsonify(result)
@@ -78,11 +78,11 @@ def get_last_data():
     row = cur.fetchone()
     conn.close()
     result = {
-        "id": row[0], "temperature": row[1], "humidite": row[2],"humidite2":row[3],"timestamp": row[4], "pompe": row[5]
+        "id": row[0], "temperature": row[1], "humidite": row[2], "humidite2": row[3], "timestamp": row[4], "pompe": row[5]
     } if row else {}
     return jsonify(result)
 
-# ✅ Endpoint POST /data (pont REST → CORBA)
+# ✅ POST /data endpoint (REST → CORBA bridge)
 @app.route('/data', methods=['POST'])
 def receive_data():
     data = request.get_json()
@@ -90,28 +90,28 @@ def receive_data():
         try:
             temperature = float(data.get("temperature", 0.0))
             humidity = float(data.get("soil_humidity", 0.0))
-            humidite2= float(data.get("air_humidity", 0.0))
+            humidite2 = float(data.get("air_humidity", 0.0))
             pump_state = bool(data.get("pump_state", False))
-            pot_value = 0.0  # valeur fictive
+            pot_value = 0.0  # dummy value
 
-            print("📥 Données reçues via REST :")
-            print(f"Température : {temperature}°C")
-            print(f"Humidité  : {humidite2}%")
-            print(f"Humidité de sol : {humidity}%")
-            print(f"Pompe : {'ON' if pump_state else 'OFF'}")
+            print("📥 Data received via REST:")
+            print(f"Temperature: {temperature}°C")
+            print(f"Humidity: {humidite2}%")
+            print(f"Soil Humidity: {humidity}%")
+            print(f"Pump: {'ON' if pump_state else 'OFF'}")
 
-            # Appel local à la méthode CORBA (objet `corba_servant`)
+            # Local call to CORBA method (object `corba_servant`)
             response = corba_servant.envoyerDonnees(temperature, humidity, humidite2, pump_state)
             return jsonify({"status": "success", "message": response}), 200
         except Exception as e:
-            print("Erreur lors du traitement :", e)
+            print("Error during processing:", e)
             return jsonify({"status": "error", "message": str(e)}), 500
     else:
-        return jsonify({"error": "Données non valides"}), 400
+        return jsonify({"error": "Invalid data"}), 400
 
-# ✅ Serveur CORBA
+# ✅ CORBA server
 def start_corba():
-    global corba_servant  # pour l'utiliser dans /data
+    global corba_servant  # used in /data
     orb = CORBA.ORB_init(sys.argv, CORBA.ORB_ID)
     poa = orb.resolve_initial_references("RootPOA")
     poa_manager = poa._get_the_POAManager()
@@ -123,11 +123,11 @@ def start_corba():
     with open("ior.txt", "w") as f:
         f.write(orb.object_to_string(obj_ref))
 
-    print("✅ Serveur CORBA prêt. IOR écrit dans ior.txt")
+    print("✅ CORBA server ready. IOR written to ior.txt")
     orb.run()
 
-# ✅ Lancement combiné
+# ✅ Combined launch
 if __name__ == "__main__":
-    init_db()  # Toujours init DB en premier
+    init_db()  # Always initialize DB first
     threading.Thread(target=lambda: app.run(host='0.0.0.0', port=5000)).start()
     start_corba()
