@@ -5,7 +5,7 @@
 
 ![Année](https://img.shields.io/badge/Année-2024%2F2025-brightgreen)
 
-![Statut](https://img.shields.io/badge/Statut-En%20développement-yellow)
+![Statut](https://img.shields.io/badge/Statut-bon%20développement-yellow)
 
 &nbsp;
 &nbsp;
